@@ -1,0 +1,37 @@
+// ตัวส่งข้อมูล CAN ไปยัง Arduino อีกตัวหนึ่ง
+
+// ฟังชั้นเรียกใช้ libary
+#include <mcp_can.h>
+#include <SPI.h>
+// สร้าง object ของ class MCP_CAN โดยกำหนด CS pin เป็น 10
+MCP_CAN CAN0(10);
+// กำหนด data ที่จะใช้ 8 หลัก
+byte data[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+
+void setup() {
+  Serial.begin(115200);
+  // กำหนด CAN bus ที่ความเร็ว 500kbps และใช้ crystal 16MHz
+  if (CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK)
+    Serial.println("CAN OK");
+  else
+    Serial.println("CAN FAIL");
+    // ตั้งค่าให้ CAN อยู่ในโหมดปกติ
+  CAN0.setMode(MCP_NORMAL);
+}
+
+void loop() {
+  // กำหนดค่า data ทั้ง 8 หลักเ
+  data[0] = 0x0;
+  data[1] = 0x0;
+  data[2] = 0x0;
+  data[3] = 0x0;
+  data[4] = 0x0;
+  data[5] = 0x0;
+  data[6] = 0x0;
+  data[7] = 0x0;
+  สร้างตัวแปร CanData เพื่อเก็บค่าผลลัพธ์จากการส่งข้อมูล CAN
+  byte CanData = CAN0.sendMsgBuf(0x100, 0, 8, data);
+  // แสดงผลลัพธ์การส่งข้อมูล CAN
+  Serial.println(CanData == CAN_OK ? "Sent" : "Send error");
+  delay(200);
+}
