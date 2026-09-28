@@ -1,0 +1,48 @@
+
+
+
+
+// ฟังชั้นเรียกใช้ libary
+#include <mcp_can.h>
+#include <SPI.h>
+// สร้าง object ของ class MCP_CAN โดยกำหนด CS pin เป็น 10
+MCP_CAN CAN0(10);
+//กำหนดให้ pin 2 เป็นขา interrupt ของ CAN
+#define CAN_INT 2
+
+// กำหนดตัวแปรสำหรับเก็บค่า ID
+long unsigned int rxId;
+//กำหนดตัวแปรสำหรับเก็บความยาวข้อมูล
+unsigned char len = 0;
+//กำหนด buffer สำหรับเก็บข้อมูลที่รับเข้ามา
+unsigned char rxBuf[8];
+
+void setup() {
+  Serial.begin(115200);
+  // กำหนด CAN bus ที่ความเร็ว 500kbps และใช้ crystal 16MHz
+  if (CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK)
+    Serial.println("CAN OK");
+  else
+    Serial.println("CAN FAIL");
+  // ตั้งค่าให้ CAN อยู่ในโหมดปกติ
+  CAN0.setMode(MCP_NORMAL);
+  // กำหนดให้ pin 2 เป็นขา interrupt ของ CAN
+  pinMode(CAN_INT, INPUT);
+}
+
+void loop() {
+  // ตรวจสอบว่ามีข้อมูล CAN เข้ามาไหม
+  if (!digitalRead(CAN_INT)) {
+    // อ่านข้อมูล CAN ที่เข้ามา
+    CAN0.readMsgBuf(&rxId, &len, rxBuf);
+    // แสดงผลลัพธ์ข้อมูล CAN ที่รับเข้ามา
+    Serial.print("ID: 0x");
+    Serial.print(rxId, HEX);
+    Serial.print(" Data: ");
+    for (byte i = 0; i < len; i++) {
+      Serial.print(rxBuf[i]);
+      Serial.print(" ");
+    }
+    Serial.println();
+  }
+}
